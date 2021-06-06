@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#Script to print all days of the current month starting today
+
+MONTH_CURR=$(date '+%m')	# Current month
+COUNTER_FROM_TODAY=0		# Counter to keep track of number of days displayed
+DATE=$(date "+%A %B %d, %Y")	# Today
+
+# Will keep printing the date until month of that date is no more the same as today
+while [ $(date '+%m' -d "$DATE") == $MONTH_CURR ]
+do
+	echo $DATE
+	COUNTER_FROM_TODAY=$(($COUNTER_FROM_TODAY + 1))
+	DATE=$(date "+%A %B %d, %Y" --date="+$COUNTER_FROM_TODAY day")	# Make DATE equal to (DATE + COUNTER_FROM_TODAY) days
+done
+
+exit 0

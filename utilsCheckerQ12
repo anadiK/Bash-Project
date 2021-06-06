@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Script to all the utilities listed in a file and give info about them
+
+# Makes sure a filepath is provided
+function readArgs() {
+	if [ -z $1 ] 
+	then
+		echo Please provide a filename: 
+		read $FILEPATH
+	else
+		FILEPATH=$1
+	fi
+}
+
+readArgs $@
+
+# Reads the file contents and iterates over the utility names
+# Uses grep filtering for each utility on dpkg contents and prints the version column if found
+if [ -f $FILEPATH ]
+then
+	UTILS=$(cat $FILEPATH)
+	for UTIL in $UTILS
+	do
+		VERSION=$(dpkg -l | grep " $UTIL " | awk '{print $3}')
+		if [ -z $VERSION ] 
+		then
+			echo The utility $UTIL is not installed.
+			continue
+		fi	
+		echo $UTIL ------------------------- $VERSION
+	done
+else
+	echo Not a valid filename.
+	exit 1
+fi
+
+exit 0

@@ -1,0 +1,10 @@
+# !/bin/bash
+# BASH script to list current file system name
+
+# Get filesystem data for / location
+FILESYSTEM=$(df -Th | grep "/$")
+
+# Print first column to show filesystem name and second column to show filesystem type
+echo Filesystem for / is $(echo $FILESYSTEM | awk '{print $1}') and is of type $(echo $FILESYSTEM | awk '{print $2}')
+
+exit 0

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Script to list all the mounts and their types
+
+cat /proc/mounts
+
+exit 0

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+#####
+# Script to create/remove a bind mount between directories
+# Mounts $2 to $4 given $1 equals 'mount'
+# Unmounts $2 given $1 equals 'unmount' 
+#####
+
+# Checks if there is a first argument specifying what user wants to do
+# Exits if not provided the first argument  with code 1
+function checkFirstArgument(){
+	if [ -z $1 ] 
+	then
+		echo Please provide first argument "[mount/unmount]" && exit 1
+	fi	
+}
+
+# Checks to see if all arguments were supplied for mount operation 
+# Exits if not provided enough arguments with code 1
+function checkValidArgumentsMount(){
+	if [ -z $2 ] 
+	then	
+		echo Please provide path to be bound as second argument: bind mount /some/where to /else/where && exit 1
+	elif [ -z $3 ]
+	then
+		echo Please follow this pattern to bind a path to another: bind mount /some/where to /else/where && exit 1
+	elif [ -z $4 ]
+	then
+		echo Please provide path to be bound to as fourth argument: bind mount /some/where to /else/where && exit 1
+	fi
+}
+
+# Checks to see if all arguments were provided for umount operation
+# Exits if not provided enough arguments with code 1
+function checkValidArgumentsUmount(){
+	if [ -z $2 ] 
+	then 
+		echo Please provide path to have bind mount removed as second argument: bind unmount /some/where && exit 1
+	fi
+}
+
+checkFirstArgument "$@"
+
+if [ $1 == mount ]
+then
+	checkValidArgumentsMount "$@"
+	mount --bind $2 $4	# creates a bind mount to $2 in $4
+	EXIT_CODE=$?
+	if [ $EXIT_CODE == 0 ]
+	then
+		echo Created bind mount from $2 to $4 successfully!
+		exit 0
+	else
+		echo Could not create a bind mount from $2 to $4...
+		exit 1
+	fi
+elif [ $1 == unmount ]
+then
+	checkValidArgumentsUmount "$@"
+	umount $2		# removes the bind mount from $2
+	EXIT_CODE=$?
+	if [ $EXIT_CODE == 0 ]
+	then
+		echo Removed bind mount from $2 successfully!
+		exit 0
+	fi
+	echo Could not remove the bind mount at $2...
+	exit 1
+else
+	echo Please provide a valid first argument "[unmount/mount]"
+	exit 1
+fi

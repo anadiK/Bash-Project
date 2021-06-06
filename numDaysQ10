@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Script to find number of days between two given dates as input
+
+# Makes sure number of arguments is 2
+function checkNumArguments() {
+	if [ -z $1 ] 
+	then
+		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format!
+		exit 1
+	elif [ -z $2 ]
+	then
+		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format!
+		exit 1
+	fi			
+}
+
+# Validates the two dates received
+function checkValidDates() {
+	date -d "$1" 1> /dev/null	# We don't want the standard output but we do want the standard error
+	EXIT_CODE=$?			# If date is valid, exit code will be 0
+	if [ $EXIT_CODE -ne 0 ]
+	then 
+		exit 1
+	fi			
+
+	date -d "$2" 1> /dev/null	# Repeat same for second date
+	EXIT_CODE=$?
+	if [ $EXIT_CODE -ne 0 ]
+	then 
+		exit 1
+	fi			
+}
+
+# Calculates the difference between dates and prints it
+function calcDifference() {
+	DATE1=$(date -d "$1" +%s)	# Convert the dates to seconds since EPOCH
+	DATE2=$(date -d "$2" +%s)
+	DAYS=$((($DATE1 - $DATE2) / (60 * 60 * 24)))	# Find the difference and convert to days
+	DAYS=$((($DAYS < 0 ? -1 : 1) * $DAYS))		# Make sure it is not negative
+	echo The difference in days between $1 and $2 is $DAYS days.
+}	
+
+# Validations followed by calcDifference method call
+checkNumArguments $@
+checkValidDates $@
+calcDifference $@
