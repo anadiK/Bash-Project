@@ -1,0 +1,183 @@
+#!/bin/bash
+
+# Create an array which holds list of courses. This should be used to compare if the course name is passed in CLI
+courses=()
+
+progname=$0
+isHelp=0
+isMount=0
+isUnmount=0
+course=""
+course_provided=0
+
+. trainingConfig
+
+# function to fetch courses and feed into courses array
+update_courses() {
+	courses=$(ls $COURSE_PATH)
+}
+
+# function to validate course being mounted
+check_course() {
+	# Check if course exists in course array
+	# Exit if not
+	if ! [[ ${courses[*]} =~ (^|[[:space:]])$course($|[[:space:]]) ]]; then
+		echo Course does not exist. >&2
+		exit 1		
+	fi
+}
+
+# function for usage
+usage() {
+	cat << HEREDOC
+Usage:
+    	$progname -h To print this help message
+    	$progname -m -c [course] For mounting a given course
+  	$progname -u -c [course] For unmounting a given course
+If course name is ommited all courses will be (un)mounted
+HEREDOC
+}
+
+# function to check mount exists
+check_mount() {
+	# Return 0 if mount exists 1 if not exists
+	if mount | grep "$DESTINATION_PATH/$course" > /dev/null
+	then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# function to mount a course
+mount_course() {
+	# Check if the given course exists in course array
+	# Check if the mount is already exists
+	# Create directory in target
+	# Set permissions
+	# Mount the source to target
+	check_course
+	if ! check_mount
+	then
+		mkdir $DESTINATION_PATH/$course
+		bindfs -p a-w -u trainee -g ftpaccess $COURSE_PATH/$course $DESTINATION_PATH/$course
+		EXIT_CODE=$?
+		if [ $EXIT_CODE -ne 0 ]
+		then
+			echo Could not mount the course from $COURSE_PATH/$course to $DESTINATION_PATH/$course >&2
+			rm -rf $DESTINATION_PATH/$course
+			echo Deleted course directory from $DESTINATION_PATH. >&2
+			exit 1
+		else
+			echo Created mount from $COURSE_PATH/$course to $DESTINATION_PATH/$course successfully!
+		fi
+	else
+		echo The destination $DESTINATION_PATH/$course is already mounted. >&2
+	fi
+}
+
+# function to mount all courses
+mount_all() {
+	# Loop through courses array
+    	# call mount_course
+	for course_curr in $courses
+	do
+		course=$course_curr
+		mount_course
+	done
+}
+
+# function to unmount course
+unmount_course() {
+	# Check if mount exists
+	# If mount exists unmount and delete directory in target folder
+	check_course
+	if ! check_mount
+	then
+		echo Mount does not exist. >&2
+		rm -rf $DESTINATION_PATH/$course > /dev/null
+		if (( $course_provided > 0 ))
+		then
+			exit 1
+		fi
+	else
+		fusermount -u $DESTINATION_PATH/$course
+		if [ $? -ne 0 ]
+		then
+			echo Could not unmount $DESTINATION_PATH/$course. >&2
+			if (( $course_provided > 0 ))
+			then
+				exit 1
+			fi
+		else
+			rm -rf $DESTINATION_PATH/$course > /dev/null
+			echo Unmounted $DESTINATION_PATH/$course successfully.
+		fi		
+	fi
+}
+
+# function to unmount all courses
+unmount_all() {
+	# Loop through courses array
+	# call unmount_course
+	for course in $( ls $DESTINATION_PATH)
+	do
+		unmount_course
+	done
+}
+
+# Check if arguments are provided or not
+if ! [ $# > 0 ]
+then
+	echo Please provide required arguments -m/-u. >&2
+	usage
+	exit 1
+fi
+
+OPTS=$(getopt -o "hmuc:" --long "help,mount,unmount,course:" -n "$progname" -- "$@")
+if [ $? != 0 ]
+then
+	echo "Error in command line arguments." >&2
+	usage
+	exit 1
+fi
+eval set -- "$OPTS"
+
+# Save each argument to variable/modify state of flag and shift to next one
+while true
+do
+	case "$1" in
+		-h | --help ) usage; exit; ;;
+		-m | --mount ) isMount=1; shift ;;
+		-u | --unmount ) isUnmount=1; shift ;;
+		-c | --course ) course="$2"; course_provided=1; shift 2 ;;
+		-- ) shift; break ;;
+		* ) break ;;
+	esac
+done
+
+update_courses
+
+if (( $isMount > 0 ))
+then
+	if ! [ -z $course ]
+	then
+		mount_course
+	else
+		mount_all
+	fi
+elif (( $isUnmount > 0 ))
+then
+	if ! [ -z $course ]
+	then
+		unmount_course
+	else
+		unmount_all
+	fi
+else
+	echo Please provide required argument -m/-u. >&2
+	usage
+	exit 1
+fi
+
+exit 0

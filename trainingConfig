@@ -1,0 +1,4 @@
+# Set the course path and destination path (trainee's home directory) here
+
+COURSE_PATH="/home/user1/bash_proj_1/data/courses"
+DESTINATION_PATH="/home/trainee"

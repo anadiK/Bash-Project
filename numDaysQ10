@@ -6,11 +6,11 @@
 function checkNumArguments() {
 	if [ -z $1 ] 
 	then
-		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format!
+		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format! >&2
 		exit 1
 	elif [ -z $2 ]
 	then
-		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format!
+		echo Please provide two dates as arguments in the format YYYY/MM/DD or any Unix recognizable format! >&2
 		exit 1
 	fi			
 }
