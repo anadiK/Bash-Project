@@ -22,7 +22,7 @@ check_course() {
 	# Check if course exists in course array
 	# Exit if not
 	if ! [[ ${courses[*]} =~ (^|[[:space:]])$course($|[[:space:]]) ]]; then
-		echo Course does not exist. >&2
+		echo Course does not exist. 2>/dev/null
 		exit 1		
 	fi
 }
@@ -64,15 +64,15 @@ mount_course() {
 		EXIT_CODE=$?
 		if [ $EXIT_CODE -ne 0 ]
 		then
-			echo Could not mount the course from $COURSE_PATH/$course to $DESTINATION_PATH/$course >&2
+			echo Could not mount the course from $COURSE_PATH/$course to $DESTINATION_PATH/$course 2>/dev/null
 			rm -rf $DESTINATION_PATH/$course
-			echo Deleted course directory from $DESTINATION_PATH. >&2
+			echo Deleted course directory from $DESTINATION_PATH. 2>/dev/null
 			exit 1
 		else
 			echo Created mount from $COURSE_PATH/$course to $DESTINATION_PATH/$course successfully!
 		fi
 	else
-		echo The destination $DESTINATION_PATH/$course is already mounted. >&2
+		echo The destination $DESTINATION_PATH/$course is already mounted. 2>/dev/null
 	fi
 }
 
@@ -94,7 +94,7 @@ unmount_course() {
 	check_course
 	if ! check_mount
 	then
-		echo Mount does not exist. >&2
+		echo Mount does not exist. 2>/dev/null
 		rm -rf $DESTINATION_PATH/$course > /dev/null
 		if (( $course_provided > 0 ))
 		then
@@ -104,7 +104,7 @@ unmount_course() {
 		fusermount -u $DESTINATION_PATH/$course
 		if [ $? -ne 0 ]
 		then
-			echo Could not unmount $DESTINATION_PATH/$course. >&2
+			echo Could not unmount $DESTINATION_PATH/$course. 2>/dev/null
 			if (( $course_provided > 0 ))
 			then
 				exit 1
@@ -129,7 +129,7 @@ unmount_all() {
 # Check if arguments are provided or not
 if ! [ $# > 0 ]
 then
-	echo Please provide required arguments -m/-u. >&2
+	echo Please provide required arguments -m/-u. 2>/dev/null
 	usage
 	exit 1
 fi
@@ -137,7 +137,7 @@ fi
 OPTS=$(getopt -o "hmuc:" --long "help,mount,unmount,course:" -n "$progname" -- "$@")
 if [ $? != 0 ]
 then
-	echo "Error in command line arguments." >&2
+	echo "Error in command line arguments." 2>/dev/null
 	usage
 	exit 1
 fi
@@ -175,7 +175,7 @@ then
 		unmount_all
 	fi
 else
-	echo Please provide required argument -m/-u. >&2
+	echo Please provide required argument -m/-u. 2>/dev/null
 	usage
 	exit 1
 fi

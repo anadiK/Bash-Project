@@ -31,7 +31,7 @@ then
 		echo $UTIL ------------------------- $VERSION
 	done
 else
-	echo Not a valid filename. >&2
+	echo Not a valid filename. 2>/dev/null
 	exit 1
 fi
 
